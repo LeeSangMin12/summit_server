@@ -2,17 +2,16 @@ const express = require('express');
 const app = express();
 const MongoClient = require('mongodb').MongoClient;
 const axios = require('axios');
-const nodemailer = require('nodemailer');
 const dotenv = require('dotenv');
+const send_google_email = require("./js/libs/node_mailer.js");
 
 dotenv.config();  //env 파일 가져오기
 
 const {
-  GOOGLE_OAUTH_USER,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
-  GOOGLE_REDIRECT_URI,
-  GOOGLE_GRANT_TYPE
+  GOOGLE_GRANT_TYPE,
+  GOOGLE_REDIRECT_URI
 } = process.env;
 
 app.use(express.json());
@@ -35,40 +34,6 @@ app.post("/login", async (req, res) => {
   const authorization_code = req.body.data.in1;
   google_login(authorization_code);
 
-
-
-  const send_email = async (receiverEmail, access_token) => {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
-      auth: {
-        type: "OAuth2",
-        user: GOOGLE_OAUTH_USER,
-        serviceClient: GOOGLE_CLIENT_ID,
-        privateKey: '-----${GOOGLE_CLIENT_PWD}-----\n...',
-        accessToken: access_token,
-        expires: 1484314697598,
-      },
-    });
-
-    const message = {
-      from: "isangmin516@gmail.com",
-      to: receiverEmail,
-      subject: 'Nodemailer X Gmail OAuth 2.0 테스트',
-      text: "안녕?"
-    };
-
-    try {
-      await transporter.sendMail(message);
-      console.log('메일을 성공적으로 발송했습니다.');
-    } catch (e) {
-      console.log(e);
-    }
-  };
-  // send_email("tkdals0920@naver.com", access_token);
-
   if (req.body.data.p_nm === "google_login") {
     res.send({
       in1: "성공"
@@ -80,18 +45,24 @@ app.post("/login", async (req, res) => {
 로그인 함수
 */
 
-const google_login = async(authorization_code) => {
-  const GOOGLE_AUTH_URL = 
-  `grant_type=${process.env.GOOGLE_GRANT_TYPE}&` +
-  `code=${authorization_code}&` +
-  `client_id=${process.env.GOOGLE_CLIENT_ID}&` +
-  `client_secret=${process.env.GOOGLE_CLIENT_SECRET}&` +
-  `redirect_uri=${GOOGLE_REDIRECT_URI}&`;
+const google_login = async (authorization_code) => {
+  const GOOGLE_AUTH_URL =
+    `grant_type=${GOOGLE_GRANT_TYPE}&` +
+    `code=${authorization_code}&` +
+    `client_id=${GOOGLE_CLIENT_ID}&` +
+    `client_secret=${GOOGLE_CLIENT_SECRET}&` +
+    `redirect_uri=${GOOGLE_REDIRECT_URI}&`;
 
   const hi = await axios.post("https://www.googleapis.com/oauth2/v4/token", GOOGLE_AUTH_URL, {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
   });
-  console.log(hi)
+
+  const access_token = hi.data.access_token;
+  const refresh_token = hi.data.refresh_token;
+  const expires_in = hi.data.expires_in;
+  send_google_email("tkdals0920@naver.com", access_token, refresh_token, expires_in);
 }
+
+
