@@ -6,6 +6,8 @@ dotenv.config();  //env 파일 가져오기
 const {
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
+  NAVER_CLINET_ID,
+  NAVER_CLINET_SECRET
 } = process.env;
 
 /**
