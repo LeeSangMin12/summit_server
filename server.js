@@ -6,6 +6,7 @@ import cors from "cors";
 
 dotenv.config();  //env 파일 가져오기
 const {
+  PORT,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   GOOGLE_REDIRECT_URI,
@@ -24,8 +25,8 @@ MongoClient.connect('mongodb+srv://tkdals0920:000920@cluster0.ehjfw8p.mongodb.ne
   if (err) return console.log(err);
   db = client.db('summit');
 
-  app.listen(8080, () => {
-    console.log("listening on 8080");
+  app.listen(PORT, () => {
+    console.log(`listening on 8080 ${PORT}`);
   });
 });
 
